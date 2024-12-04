@@ -50,7 +50,7 @@ presets: [
     {
       specs: [
         {
-          id: 'petstore',
+          id: 'buildFinder',
           spec: 'api_specs/openapi.yaml',
         },
       ],

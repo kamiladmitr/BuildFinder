@@ -1,819 +1,829 @@
-openapi: 3.0.2
-servers:
-  - url: /v3
+openapi: 3.0.3
 info:
-  description: |-
-    This is a sample Pet Store Server based on the OpenAPI 3.0 specification.  You can find out more about
-    Swagger at [http://swagger.io](http://swagger.io). In the third iteration of the pet store, we've switched to the design first approach!
-    You can now help us improve the API whether it's by making changes to the definition itself or to the code.
-    That way, with time, we can improve the API in general, and expose some of the new features in OAS3.
-
-    Some useful links:
-    - [The Pet Store repository](https://github.com/swagger-api/swagger-petstore)
-    - [The source API definition for the Pet Store](https://github.com/swagger-api/swagger-petstore/blob/master/src/main/resources/openapi.yaml)
-  version: 1.0.20-SNAPSHOT
-  title: Swagger Petstore - OpenAPI 3.0
-  termsOfService: 'http://swagger.io/terms/'
-  contact:
-    email: apiteam@swagger.io
-  license:
-    name: Apache 2.0
-    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+  title: BuildFinder API - OpenAPI 3.0
+  description: API для работы c заказами и услугами. BuildFinder API предоставляет набор инструментов для управления заказами и услугами в системе. Он позволяет пользователям легко создавать, просматривать и управлять предложениями работ, а также получать подробную информацию о заказах и связанных с ними материалах. 
+  version: 1.0.0
+security:
+- BearerAuth: []
+servers:
+  - url: https://buildfinder.com/api/v1
 tags:
-  - name: pet
-    description: Everything about your Pets
-    externalDocs:
-      description: Find out more
-      url: 'http://swagger.io'
-  - name: store
-    description: Access to Petstore orders
-    externalDocs:
-      description: Find out more about our store
-      url: 'http://swagger.io'
-  - name: user
-    description: Operations about user
+  - name: Work Offer Publication
+    description:  Методы работы с публикациями услуг
+  - name: Order
+    description: Методы для управления заказами
+  - name: Contractor
+    description: Методы для работы с подрядчиками
 paths:
-  /pet:
+  /api/v1/workoffers:
     post:
       tags:
-        - pet
-      summary: Add a new pet to the store
-      description: Add a new pet to the store
-      operationId: addPet
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Pet'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
-        '405':
-          description: Invalid input
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
+        - Work Offer Publication
+      summary: Получить список публикаций об услугах
+      description: Этот запрос позволяет получить список публикаций предложений работ по заданным критериям. Параметры `offset` и `limit` помогают управлять пагинацией результатов, а также можно фильтровать результаты по категориям.
+      parameters:
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: number
+            format: integer
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: number
+            format: integer
       requestBody:
-        description: Create a new pet in the store
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/Pet'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/Pet'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Pet'
-    put:
-      tags:
-        - pet
-      summary: Update an existing pet
-      description: Update an existing pet by Id
-      operationId: updatePet
+              type: object
+              properties:
+                categories:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
       responses:
         '200':
-          description: Successful operation
+          description: Успешный ответ
           content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Pet'
             application/json:
               schema:
-                $ref: '#/components/schemas/Pet'
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOfferInfo'
         '400':
-          description: Invalid ID supplied
-        '404':
-          description: Pet not found
-        '405':
-          description: Validation exception
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
-      requestBody:
-        description: Update an existent pet in the store
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Pet'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/Pet'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Pet'
-  /pet/findByStatus:
+          description: Неверный запрос
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/workoffers/{id}:
     get:
       tags:
-        - pet
-      summary: Finds Pets by status
-      description: Multiple status values can be provided with comma separated strings
-      operationId: findPetsByStatus
+        - Work Offer Publication
+      summary: Получить детальную информацию о публикации
+      description: Этот запрос возвращает полную информацию о конкретном предложении работ, включая детали публикации и прикрепленные файлы.
       parameters:
-        - name: status
-          in: query
-          description: Status values that need to be considered for filter
-          required: false
-          explode: true
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
           schema:
             type: string
-            enum:
-              - available
-              - pending
-              - sold
-            default: available
       responses:
         '200':
-          description: successful operation
+          description: Успешный ответ
           content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-        '400':
-          description: Invalid status value
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
-  /pet/findByTags:
-    get:
-      tags:
-        - pet
-      summary: Finds Pets by tags
-      description: >-
-        Multiple tags can be provided with comma separated strings. Use tag1,
-        tag2, tag3 for testing.
-      operationId: findPetsByTags
-      parameters:
-        - name: tags
-          in: query
-          description: Tags to filter by
-          required: false
-          explode: true
-          schema:
-            type: array
-            items:
-              type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/Pet'
-        '400':
-          description: Invalid tag value
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
-  '/pet/{petId}':
-    get:
-      tags:
-        - pet
-      summary: Find pet by ID
-      description: Returns a single pet
-      operationId: getPetById
-      parameters:
-        - name: petId
-          in: path
-          description: ID of pet to return
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Pet'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Pet'
-        '400':
-          description: Invalid ID supplied
+                $ref: '#/components/schemas/WorkOfferPublication'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
         '404':
-          description: Pet not found
-      security:
-        - api_key: []
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера       
+  /api/v1/files/{id}:
+    get:
+      summary: Скачать файл по идентификатору
+      description: Этот запрос позволяет скачать файл по его уникальному идентификатору.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор файла, который необходимо скачать.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Файл успешно загружен
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+                format: binary
+            application/msword:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено  
+        '404':
+          description: Файл не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/order:
     post:
       tags:
-        - pet
-      summary: Updates a pet in the store with form data
-      description: ''
-      operationId: updatePetWithForm
+        - Order
+      summary: Разместить новый заказ
+      description: Этот запрос позволяет создать новый заказ с заданной информацией и опционально прикрепить файлы.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                order:
+                  $ref: '#/components/schemas/Order'
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required: [order]
+      responses:
+        '201':
+          description: Заказ успешно размещён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '400':
+          description: Неверные данные заказа
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/customer/{id}:  
+    get:
+      tags:
+        - Order
+      summary: Получить список своих публикаций
+      description: Этот запрос возвращает массив публикаций заказов, которые пользователь разместил. Если публикации отсутствуют, вернется соответствующее сообщение.
       parameters:
-        - name: petId
+        - name: id
           in: path
-          description: ID of pet that needs to be updated
           required: true
-          schema:
-            type: integer
-            format: int64
-        - name: name
-          in: query
-          description: Name of pet that needs to be updated
-          schema:
-            type: string
-        - name: status
-          in: query
-          description: Status of pet that needs to be updated
+          description: ID клиента
           schema:
             type: string
       responses:
-        '405':
-          description: Invalid input
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
+        '200':
+          description: Успешный ответ с массивом публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderInfo'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Публикации не найдены
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/{id}:
+    get:
+      tags:
+        - Order
+      summary: Получить информацио о заказе по идентификатору
+      description: Этот запрос возвращает полную информацию по id заказа.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с объектом заказа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Отклики не найдены
+        '500':
+          description: Ошибка сервера
+    patch:
+      tags:
+        - Order
+      summary: Редактировать заказ
+      description: Этот запрос позволяет редактировать существующий заказ, изменяя его информацию и, при необходимости, добавляя прикрепленные файлы.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                order:
+                  $ref: '#/components/schemas/Order'
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required: [order]
+      responses:
+        '200':
+          description: Заказ успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '400':
+          description: Неверные данные для редактирования заказа
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
     delete:
       tags:
-        - pet
-      summary: Deletes a pet
-      description: ''
-      operationId: deletePet
+        - Order
+      summary: Удалить заказ
+      description: Этот запрос позволяет удалить заказ по указанному ID. Если заказа не существует, будет возвращена ошибка.
       parameters:
-        - name: api_key
-          in: header
-          description: ''
-          required: false
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
           schema:
             type: string
-        - name: petId
-          in: path
-          description: Pet id to delete
-          required: true
-          schema:
-            type: integer
-            format: int64
       responses:
-        '400':
-          description: Invalid pet value
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
-  '/pet/{petId}/uploadImage':
-    post:
+        '204':
+          description: Заказ успешно удалён
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/{id}/offers:
+    get:
       tags:
-        - pet
-      summary: uploads an image
-      description: ''
-      operationId: uploadFile
+        - Order
+      summary: Получить список откликов
+      description: Этот запрос возвращает все отклики (предложения) от подрядчиков на заказ, идентифицированный по указанному ID.
       parameters:
-        - name: petId
+        - name: id
           in: path
-          description: ID of pet to update
           required: true
-          schema:
-            type: integer
-            format: int64
-        - name: additionalMetadata
-          in: query
-          description: Additional Metadata
-          required: false
+          description: ID заказа
           schema:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Успешный ответ с массивом откликов
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ApiResponse'
-      security:
-        - petstore_auth:
-            - 'write:pets'
-            - 'read:pets'
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
-  /store/inventory:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractorOffer'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Отклики не найдены
+        '500':
+          description: Ошибка сервера    
+  /api/v1/categories:
     get:
-      tags:
-        - store
-      summary: Returns pet inventories by status
-      description: Returns a map of status codes to quantities
-      operationId: getInventory
-      x-swagger-router-controller: OrderController
+      summary: Получить список категорий
+      description: Этот запрос возвращает массив всех доступных категорий для заказов. Это поможет пользователям выбрать правильные категории при размещении заказов.
       responses:
         '200':
-          description: successful operation
+          description: Успешный ответ с массивом категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                 $ref: '#/components/schemas/Categories'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/status:
+    get:
+      summary: Получить список статусов
+      description: Этот запрос возвращает массив всех возможных статусов, которые могут быть присвоены заказам, обеспечивая пользователю актуальную информацию о статусах.
+      responses:
+        '200':
+          description: Успешный ответ с массивом статусов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                 $ref: '#/components/schemas/Status'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/workoffers/{id}/offer:
+    post:
+      tags:
+        - Work Offer Publication
+      summary: Отправить отклик на публикацию
+      description: Этот запрос позволяет пользователю отправить отклик на конкретную публикацию предложения работ, указанную по её уникальному идентификатору.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerOffer'
+      responses:
+        '201':
+          description: Отклик успешно отправлен
+        '400':
+          description: Неверные данные для отклика
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Публикация не найдена
+        '500':
+          description: Ошибка сервера
+  /api/v1/contractors/{id}:
+    get:
+      tags:
+        - Contractor
+      summary: Получить информацию о подрядчике (профиль)
+      description: Этот запрос возвращает информацию о конкретном подрядчике, включая его профиль и доступные услуги. Информация выводится по уникальному идентификатору подрядчика.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contractor'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера       
+  /api/v1/contractors/{id}/orders:
+    get:
+      tags:
+        - Contractor
+      summary: Получить список публикаций, связанных с подрядчиком
+      description: Этот запрос позволяет получить список всех публикаций предложений работ, связанных с указанным подрядчиком.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с массивом публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOffer'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/message:
+    post:
+      summary: Отправить сообщение
+      description: Этот запрос позволяет пользователям отправлять сообщения в систему.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: Сообщение успешно отправлено
+        '400':
+          description: Неверные данные для сообщения
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/contactors/{id}/feedback:
+    get:
+      tags:
+        - Contractor
+      summary: Получить рейтинг и отзывы о подрядчике
+      description: Этот запрос возвращает рейтинг и отзывы о заданном подрядчике по его идентификатору. Это позволяет пользователям оценить надежность и качество работы подрядчика перед выбором.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с отзывами и рейтингом
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties:
-                  type: integer
-                  format: int32
-      security:
-        - api_key: []
-  /store/order:
-    post:
-      tags:
-        - store
-      summary: Place an order for a pet
-      description: Place a new order in the store
-      operationId: placeOrder
-      x-swagger-router-controller: OrderController
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-        '405':
-          description: Invalid input
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Order'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/Order'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/Order'
-  '/store/order/{orderId}':
-    get:
-      tags:
-        - store
-      summary: Find purchase order by ID
-      x-swagger-router-controller: OrderController
-      description: >-
-        For valid response try integer IDs with value <= 5 or > 10. Other values
-        will generate exceptions.
-      operationId: getOrderById
-      parameters:
-        - name: orderId
-          in: path
-          description: ID of order that needs to be fetched
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/Order'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Order'
-        '400':
-          description: Invalid ID supplied
+                properties:
+                  AverageRating: 
+                    type: integer
+                    description: Итоговый рейтинг подрядчика
+                  Feedbacks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feedback'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
         '404':
-          description: Order not found
-    delete:
-      tags:
-        - store
-      summary: Delete purchase order by ID
-      x-swagger-router-controller: OrderController
-      description: >-
-        For valid response try integer IDs with value < 1000. Anything above
-        1000 or nonintegers will generate API errors
-      operationId: deleteOrder
-      parameters:
-        - name: orderId
-          in: path
-          description: ID of the order that needs to be deleted
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '400':
-          description: Invalid ID supplied
-        '404':
-          description: Order not found
-  /user:
-    post:
-      tags:
-        - user
-      summary: Create user
-      description: This can only be done by the logged in user.
-      operationId: createUser
-      responses:
-        default:
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/User'
-        description: Created user object
-  /user/createWithList:
-    post:
-      tags:
-        - user
-      summary: Creates list of users with given input array
-      description: 'Creates list of users with given input array'
-      x-swagger-router-controller: UserController
-      operationId: createUsersWithListInput
-      responses:
-        '200':
-          description: Successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        default:
-          description: successful operation
-      requestBody:
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                $ref: '#/components/schemas/User'
-  /user/login:
-    get:
-      tags:
-        - user
-      summary: Logs user into the system
-      description: ''
-      operationId: loginUser
-      parameters:
-        - name: username
-          in: query
-          description: The user name for login
-          required: false
-          schema:
-            type: string
-        - name: password
-          in: query
-          description: The password for login in clear text
-          required: false
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          headers:
-            X-Rate-Limit:
-              description: calls per hour allowed by the user
-              schema:
-                type: integer
-                format: int32
-            X-Expires-After:
-              description: date in UTC when token expires
-              schema:
-                type: string
-                format: date-time
-          content:
-            application/xml:
-              schema:
-                type: string
-            application/json:
-              schema:
-                type: string
-        '400':
-          description: Invalid username/password supplied
-  /user/logout:
-    get:
-      tags:
-        - user
-      summary: Logs out current logged in user session
-      description: ''
-      operationId: logoutUser
-      parameters: []
-      responses:
-        default:
-          description: successful operation
-  '/user/{username}':
-    get:
-      tags:
-        - user
-      summary: Get user by user name
-      description: ''
-      operationId: getUserByName
-      parameters:
-        - name: username
-          in: path
-          description: 'The name that needs to be fetched. Use user1 for testing. '
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: successful operation
-          content:
-            application/xml:
-              schema:
-                $ref: '#/components/schemas/User'
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-    put:
-      tags:
-        - user
-      summary: Update user
-      x-swagger-router-controller: UserController
-      description: This can only be done by the logged in user.
-      operationId: updateUser
-      parameters:
-        - name: username
-          in: path
-          description: name that needs to be updated
-          required: true
-          schema:
-            type: string
-      responses:
-        default:
-          description: successful operation
-      requestBody:
-        description: Update an existent user in the store
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/xml:
-            schema:
-              $ref: '#/components/schemas/User'
-          application/x-www-form-urlencoded:
-            schema:
-              $ref: '#/components/schemas/User'
-    delete:
-      tags:
-        - user
-      summary: Delete user
-      description: This can only be done by the logged in user.
-      operationId: deleteUser
-      parameters:
-        - name: username
-          in: path
-          description: The name that needs to be deleted
-          required: true
-          schema:
-            type: string
-      responses:
-        '400':
-          description: Invalid username supplied
-        '404':
-          description: User not found
-externalDocs:
-  description: Find out more about Swagger
-  url: 'http://swagger.io'
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера 
 components:
   schemas:
     Order:
-      x-swagger-router-model: io.swagger.petstore.model.Order
+      type: object
+      properties:
+        title:
+          type: string
+          description: Наименование заказа
+        description:
+          type: string
+          description: Описание заказа
+        categories:
+          type:
+            array
+          items:
+            $ref: '#/components/schemas/CategoryId'
+          description: Категория заказа
+        price:
+          type: number
+          format: double
+          description: Предложенная цена
+      required: ["title", "description",  "categories", "price"]
+    OrderInfo:
+      type: object
+      allOf:
+            - $ref: '#/components/schemas/Order'
       properties:
         id:
-          type: integer
-          format: int64
-          example: 10
-        petId:
-          type: integer
-          format: int64
-          example: 198772
-        quantity:
-          type: integer
-          format: int32
-          example: 7
-        shipDate:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации заказа 
+    OrderPublication:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Order'
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации заказа
+        status:
+          type: string
+          enum: [New, InProgress, Completed]
+          description: Статус заказаа
+        customerId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор клиента
+        files:
+          type:
+            array
+          items:
+            $ref: '#/components/schemas/Files'
+          description: Файлы
+        createdDate:
           type: string
           format: date-time
+          description: Дата создания заказа
+        updatedDate:
+          type: string
+          format: date-time
+          description: Дата изменения заказа
+      required: ["id", "status",  "customerId", "createdDate", "updatedDate"]
+    WorkOffer:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Наименование услуги
+        description:
+          type: string
+          description: Краткое описание услуги
+        categories:
+          type:
+            array
+          items:
+            $ref: '#/components/schemas/CategoryId'
+          description: Категория услуги
+        price:
+          type: number
+          format: double
+          description: Предложенная цена
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации
+      required: ["title", "description",  "categories", "price", "id"]
+    WorkOfferInfo:
+      type: object
+      allOf:
+            - $ref: '#/components/schemas/WorkOffer'
+      properties:
+        contractor:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/Contractor'
+      required: ["contractor"]
+    WorkOfferPublication:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/WorkOfferInfo'
+      properties:
         status:
           type: string
-          description: Order Status
-          enum:
-            - placed
-            - approved
-            - delivered
-          example: approved
-        complete:
-          type: boolean
-      xml:
-        name: order
-      type: object
-    Customer:
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 100000
-        username:
-          type: string
-          example: fehguy
-        address:
+          enum: [ Active, Completed]
+          description: Статус заказаа
+        attachedFiles:
           type: array
-          items:
-            $ref: '#/components/schemas/Address'
-          xml:
-            wrapped: true
-            name: addresses
-      xml:
-        name: customer
-      type: object
-    Address:
-      properties:
-        street:
-          type: string
-          example: 437 Lytton
-        city:
-          type: string
-          example: Palo Alto
-        state:
-          type: string
-          example: CA
-        zip:
-          type: string
-          example: 94301
-      xml:
-        name: address
-      type: object
-    Category:
-      x-swagger-router-model: io.swagger.petstore.model.Category
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 1
-        name:
-          type: string
-          example: Dogs
-      xml:
-        name: category
-      type: object
-    User:
-      x-swagger-router-model: io.swagger.petstore.model.User
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 10
-        username:
-          type: string
-          example: theUser
-        firstName:
-          type: string
-          example: John
-        lastName:
-          type: string
-          example: James
-        email:
-          type: string
-          example: john@email.com
-        password:
-          type: string
-          example: 12345
-        phone:
-          type: string
-          example: 12345
-        userStatus:
-          type: integer
-          format: int32
-          example: 1
-          description: User Status
-      xml:
-        name: user
-      type: object
-    Tag:
-      x-swagger-router-model: io.swagger.petstore.model.Tag
-      properties:
-        id:
-          type: integer
-          format: int64
-        name:
-          type: string
-      xml:
-        name: tag
-      type: object
-    Pet:
-      x-swagger-router-model: io.swagger.petstore.model.Pet
-      required:
-        - name
-        - photoUrls
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 10
-        name:
-          type: string
-          example: doggie
-        category:
-          $ref: '#/components/schemas/Category'
-        photoUrls:
-          type: array
-          xml:
-            wrapped: true
           items:
             type: string
-            xml:
-              name: photoUrl
-        tags:
-          type: array
-          xml:
-            wrapped: true
-          items:
-            $ref: '#/components/schemas/Tag'
-            xml:
-              name: tag
-        status:
+            format: uuid
+            description: Список идентификаторов прикрепленных файлов
+        createdDate:
           type: string
-          description: pet status in the store
-          enum:
-            - available
-            - pending
-            - sold
-      xml:
-        name: pet
+          format: date-time
+          description: Дата создания объявления об услуге
+        updatedDate:
+          type: string
+          format: date-time
+          description: Дата изменения заказа
+      required: ["createdDate", "updatedDate"]
+    Customer:
       type: object
-    ApiResponse:
       properties:
-        code:
-          type: integer
-          format: int32
-        type:
+        id:
           type: string
+          format: uuid
+          description: Уникальный идентификатор клиента
+        name:
+          type: string
+          description: ФИО(либо наименование компании) клиента
+        phone:
+          type: string
+          description: Номер телефона клиента
+        email:
+          type: string
+          description: Электронный адрес клиента
+        image:
+          type: string
+          format: uuid
+          description: UUID аватара клиента
+      required: ["id", "name", "phone"]
+    Contractor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор подрядчика
+        name:
+          type: string
+          description: ФИО(либо наименование компании) подрядчика
+        image:
+          type: string
+          format: uuid
+          description: UUID аватара подрядчика
+        workExperienceDays:
+          type: number
+          format: integer
+          description: Стаж работы       
+      required: ["id", "name", "workExperienceDays"]
+    ContractorFull:
+      type: object
+      allOf:
+            - $ref: '#/components/schemas/Contractor'
+      properties:
+        phone:
+          type: string
+          description: Номер телефона подрядчика
+        email:
+          type: string
+          description: Электронный адрес подрядчика
+        competence:
+          type: string
+          description: Навыки подрядчика
+          allOf:
+            - $ref: '#/components/schemas/Categories'
+        additionalInformation: 
+          type: string
+          format: text
+          description: Дополнительная информация
+      required: ["phone", "competence"]
+    CustomerOffer:
+      type: object
+      properties:
+        price:
+          type: number
+          format: double
+          description: Предложенная цена от клиента
+        conditions:
+          type: string
+          description: Условия выполнения работы
+      required: ["price", "conditions"]
+    ContractorOffer:
+      type: object
+      properties:
+        contractorId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор подрядчика
+        price:
+          type: number
+          format: double
+          description: Предложенная цена от подрядчика
+        conditions:
+          type: string
+          description: Условия выполнения работы
+      required: ["id", "price", "conditions"]
+    CategoryId:
+      type: string
+      format: uuid
+      description: Уникальный идентификатор категории
+    Categories:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CategoryId'
+        name:
+          type: string
+          description: Название категории
+        description:
+          type: string
+          description: Описание категории
+      required: ["id", "name"]
+    Status:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор статуса
+        name:
+          type: string
+          description: Название статуса
+        description:
+          type: string
+          description: Описание статуса
+      required: ["id", "name"]
+    Files:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор файла
+        name:
+          type: string
+          description: Название файла
+        format:
+          type: string
+          description: Формат файла
+      required: ["id", "name", "format"]
+    Message:
+      type: object
+      description: Сообщение
+      properties:
+        publicationId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации
+        senderId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор отправителя сообщения
+        recipientId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор получателя сообщения
         message:
           type: string
-      xml:
-        name: '##default'
+          format: text
+          description: Текст сообщения
+      required: ["publicationId", "senderId", "recipientId", "message"]
+    Feedback:
       type: object
-  requestBodies:
-    Pet:
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/Pet'
-        application/xml:
-          schema:
-            $ref: '#/components/schemas/Pet'
-      description: Pet object that needs to be added to the store
-    UserArray:
-      content:
-        application/json:
-          schema:
-            type: array
-            items:
-              $ref: '#/components/schemas/User'
-      description: List of user object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор отзыва
+        order:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор заказа
+            title:
+              type: string
+              description: Название заказа
+        rating:
+          type: integer
+          enum: [1, 2, 3, 4, 5]
+          description: Оценка о проделанной работе
+        comment:
+          type: string
+          description: Текст отзыва
+        reviewer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор пользователя, оставившего отзыв
+            name:
+              type: string
+              description: Имя пользователя, оставившего отзыв
+            image:
+              type: string
+              format: uuid
+              description: UUID аватара подрядчика
+          required: ["id", "name"]
+        createdDate:
+          type: string
+          format: date-time
+          description: Дата и время, когда был оставлен отзыв
+      required: ["id", "orderId", "orderTitle", "rating", "reviewer", "createdDate"]
   securitySchemes:
-    petstore_auth:
-      type: oauth2
-      flows:
-        implicit:
-          authorizationUrl: 'https://petstore.swagger.io/oauth/authorize'
-          scopes:
-            'write:pets': modify pets in your account
-            'read:pets': read your pets
-    api_key:
-      type: apiKey
-      name: api_key
-      in: header
+   BearerAuth:
+    type: http
+    scheme: bearer
