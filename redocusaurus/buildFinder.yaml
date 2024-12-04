@@ -1,0 +1,926 @@
+openapi: 3.0.3
+info:
+  title: BuildFinder API - OpenAPI 3.0
+  description: >-
+    API для работы c заказами и услугами. BuildFinder API предоставляет набор
+    инструментов для управления заказами и услугами в системе. Он позволяет
+    пользователям легко создавать, просматривать и управлять предложениями
+    работ, а также получать подробную информацию о заказах и связанных с ними
+    материалах.
+  version: 1.0.0
+security:
+  - BearerAuth: []
+servers:
+  - url: https://buildfinder.com/api/v1
+tags:
+  - name: Work Offer Publication
+    description: Методы работы с публикациями услуг
+  - name: Order
+    description: Методы для управления заказами
+  - name: Contractor
+    description: Методы для работы с подрядчиками
+paths:
+  /api/v1/workoffers:
+    post:
+      tags:
+        - Work Offer Publication
+      summary: Получить список публикаций об услугах
+      description: >-
+        Этот запрос позволяет получить список публикаций предложений работ по
+        заданным критериям. Параметры `offset` и `limit` помогают управлять
+        пагинацией результатов, а также можно фильтровать результаты по
+        категориям.
+      parameters:
+        - name: offset
+          in: query
+          required: true
+          schema:
+            type: number
+            format: integer
+        - name: limit
+          in: query
+          required: true
+          schema:
+            type: number
+            format: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                categories:
+                  type: array
+                  items:
+                    type: string
+                    format: uuid
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOfferInfo'
+        '400':
+          description: Неверный запрос
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/workoffers/{id}:
+    get:
+      tags:
+        - Work Offer Publication
+      summary: Получить детальную информацию о публикации
+      description: >-
+        Этот запрос возвращает полную информацию о конкретном предложении работ,
+        включая детали публикации и прикрепленные файлы.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WorkOfferPublication'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/files/{id}:
+    get:
+      summary: Скачать файл по идентификатору
+      description: Этот запрос позволяет скачать файл по его уникальному идентификатору.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Уникальный идентификатор файла, который необходимо скачать.
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Файл успешно загружен
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+            image/png:
+              schema:
+                type: string
+                format: binary
+            text/plain:
+              schema:
+                type: string
+                format: binary
+            application/msword:
+              schema:
+                type: string
+                format: binary
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Файл не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/order:
+    post:
+      tags:
+        - Order
+      summary: Разместить новый заказ
+      description: >-
+        Этот запрос позволяет создать новый заказ с заданной информацией и
+        опционально прикрепить файлы.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                order:
+                  $ref: '#/components/schemas/Order'
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - order
+      responses:
+        '201':
+          description: Заказ успешно размещён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '400':
+          description: Неверные данные заказа
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/customer/{id}:
+    get:
+      tags:
+        - Order
+      summary: Получить список своих публикаций
+      description: >-
+        Этот запрос возвращает массив публикаций заказов, которые пользователь
+        разместил. Если публикации отсутствуют, вернется соответствующее
+        сообщение.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID клиента
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с массивом публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OrderInfo'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Публикации не найдены
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/{id}:
+    get:
+      tags:
+        - Order
+      summary: Получить информацио о заказе по идентификатору
+      description: Этот запрос возвращает полную информацию по id заказа.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с объектом заказа
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Отклики не найдены
+        '500':
+          description: Ошибка сервера
+    patch:
+      tags:
+        - Order
+      summary: Редактировать заказ
+      description: >-
+        Этот запрос позволяет редактировать существующий заказ, изменяя его
+        информацию и, при необходимости, добавляя прикрепленные файлы.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                order:
+                  $ref: '#/components/schemas/Order'
+                files:
+                  type: array
+                  items:
+                    type: string
+                    format: binary
+              required:
+                - order
+      responses:
+        '200':
+          description: Заказ успешно обновлён
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderPublication'
+        '400':
+          description: Неверные данные для редактирования заказа
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
+    delete:
+      tags:
+        - Order
+      summary: Удалить заказ
+      description: >-
+        Этот запрос позволяет удалить заказ по указанному ID. Если заказа не
+        существует, будет возвращена ошибка.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Заказ успешно удалён
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Заказ не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/orders/{id}/offers:
+    get:
+      tags:
+        - Order
+      summary: Получить список откликов
+      description: >-
+        Этот запрос возвращает все отклики (предложения) от подрядчиков на
+        заказ, идентифицированный по указанному ID.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с массивом откликов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractorOffer'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Отклики не найдены
+        '500':
+          description: Ошибка сервера
+  /api/v1/categories:
+    get:
+      summary: Получить список категорий
+      description: >-
+        Этот запрос возвращает массив всех доступных категорий для заказов. Это
+        поможет пользователям выбрать правильные категории при размещении
+        заказов.
+      responses:
+        '200':
+          description: Успешный ответ с массивом категорий
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Categories'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/status:
+    get:
+      summary: Получить список статусов
+      description: >-
+        Этот запрос возвращает массив всех возможных статусов, которые могут
+        быть присвоены заказам, обеспечивая пользователю актуальную информацию о
+        статусах.
+      responses:
+        '200':
+          description: Успешный ответ с массивом статусов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Status'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/workoffers/{id}/offer:
+    post:
+      tags:
+        - Work Offer Publication
+      summary: Отправить отклик на публикацию
+      description: >-
+        Этот запрос позволяет пользователю отправить отклик на конкретную
+        публикацию предложения работ, указанную по её уникальному
+        идентификатору.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID заказа
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerOffer'
+      responses:
+        '201':
+          description: Отклик успешно отправлен
+        '400':
+          description: Неверные данные для отклика
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Публикация не найдена
+        '500':
+          description: Ошибка сервера
+  /api/v1/contractors/{id}:
+    get:
+      tags:
+        - Contractor
+      summary: Получить информацию о подрядчике (профиль)
+      description: >-
+        Этот запрос возвращает информацию о конкретном подрядчике, включая его
+        профиль и доступные услуги. Информация выводится по уникальному
+        идентификатору подрядчика.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Contractor'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/contractors/{id}/orders:
+    get:
+      tags:
+        - Contractor
+      summary: Получить список публикаций, связанных с подрядчиком
+      description: >-
+        Этот запрос позволяет получить список всех публикаций предложений работ,
+        связанных с указанным подрядчиком.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с массивом публикаций
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkOffer'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера
+  /api/v1/message:
+    post:
+      summary: Отправить сообщение
+      description: Этот запрос позволяет пользователям отправлять сообщения в систему.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Message'
+      responses:
+        '201':
+          description: Сообщение успешно отправлено
+        '400':
+          description: Неверные данные для сообщения
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '500':
+          description: Ошибка сервера
+  /api/v1/contactors/{id}/feedback:
+    get:
+      tags:
+        - Contractor
+      summary: Получить рейтинг и отзывы о подрядчике
+      description: >-
+        Этот запрос возвращает рейтинг и отзывы о заданном подрядчике по его
+        идентификатору. Это позволяет пользователям оценить надежность и
+        качество работы подрядчика перед выбором.
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID подрядчика
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Успешный ответ с отзывами и рейтингом
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  AverageRating:
+                    type: integer
+                    description: Итоговый рейтинг подрядчика
+                  Feedbacks:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Feedback'
+        '401':
+          description: Не авторизован
+        '403':
+          description: Запрещено
+        '404':
+          description: Подрядчик не найден
+        '500':
+          description: Ошибка сервера
+components:
+  schemas:
+    Order:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Наименование заказа
+        description:
+          type: string
+          description: Описание заказа
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryId'
+          description: Категория заказа
+        price:
+          type: number
+          format: double
+          description: Предложенная цена
+      required:
+        - title
+        - description
+        - categories
+        - price
+    OrderInfo:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Order'
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации заказа
+    OrderPublication:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Order'
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации заказа
+        status:
+          type: string
+          enum:
+            - New
+            - InProgress
+            - Completed
+          description: Статус заказаа
+        customerId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор клиента
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/Files'
+          description: Файлы
+        createdDate:
+          type: string
+          format: date-time
+          description: Дата создания заказа
+        updatedDate:
+          type: string
+          format: date-time
+          description: Дата изменения заказа
+      required:
+        - id
+        - status
+        - customerId
+        - createdDate
+        - updatedDate
+    WorkOffer:
+      type: object
+      properties:
+        title:
+          type: string
+          description: Наименование услуги
+        description:
+          type: string
+          description: Краткое описание услуги
+        categories:
+          type: array
+          items:
+            $ref: '#/components/schemas/CategoryId'
+          description: Категория услуги
+        price:
+          type: number
+          format: double
+          description: Предложенная цена
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации
+      required:
+        - title
+        - description
+        - categories
+        - price
+        - id
+    WorkOfferInfo:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/WorkOffer'
+      properties:
+        contractor:
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/Contractor'
+      required:
+        - contractor
+    WorkOfferPublication:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/WorkOfferInfo'
+      properties:
+        status:
+          type: string
+          enum:
+            - Active
+            - Completed
+          description: Статус заказаа
+        attachedFiles:
+          type: array
+          items:
+            type: string
+            format: uuid
+            description: Список идентификаторов прикрепленных файлов
+        createdDate:
+          type: string
+          format: date-time
+          description: Дата создания объявления об услуге
+        updatedDate:
+          type: string
+          format: date-time
+          description: Дата изменения заказа
+      required:
+        - createdDate
+        - updatedDate
+    Customer:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор клиента
+        name:
+          type: string
+          description: ФИО(либо наименование компании) клиента
+        phone:
+          type: string
+          description: Номер телефона клиента
+        email:
+          type: string
+          description: Электронный адрес клиента
+        image:
+          type: string
+          format: uuid
+          description: UUID аватара клиента
+      required:
+        - id
+        - name
+        - phone
+    Contractor:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор подрядчика
+        name:
+          type: string
+          description: ФИО(либо наименование компании) подрядчика
+        image:
+          type: string
+          format: uuid
+          description: UUID аватара подрядчика
+        workExperienceDays:
+          type: number
+          format: integer
+          description: Стаж работы
+      required:
+        - id
+        - name
+        - workExperienceDays
+    ContractorFull:
+      type: object
+      allOf:
+        - $ref: '#/components/schemas/Contractor'
+      properties:
+        phone:
+          type: string
+          description: Номер телефона подрядчика
+        email:
+          type: string
+          description: Электронный адрес подрядчика
+        competence:
+          type: string
+          description: Навыки подрядчика
+          allOf:
+            - $ref: '#/components/schemas/Categories'
+        additionalInformation:
+          type: string
+          format: text
+          description: Дополнительная информация
+      required:
+        - phone
+        - competence
+    CustomerOffer:
+      type: object
+      properties:
+        price:
+          type: number
+          format: double
+          description: Предложенная цена от клиента
+        conditions:
+          type: string
+          description: Условия выполнения работы
+      required:
+        - price
+        - conditions
+    ContractorOffer:
+      type: object
+      properties:
+        contractorId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор подрядчика
+        price:
+          type: number
+          format: double
+          description: Предложенная цена от подрядчика
+        conditions:
+          type: string
+          description: Условия выполнения работы
+      required:
+        - id
+        - price
+        - conditions
+    CategoryId:
+      type: string
+      format: uuid
+      description: Уникальный идентификатор категории
+    Categories:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/CategoryId'
+        name:
+          type: string
+          description: Название категории
+        description:
+          type: string
+          description: Описание категории
+      required:
+        - id
+        - name
+    Status:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор статуса
+        name:
+          type: string
+          description: Название статуса
+        description:
+          type: string
+          description: Описание статуса
+      required:
+        - id
+        - name
+    Files:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор файла
+        name:
+          type: string
+          description: Название файла
+        format:
+          type: string
+          description: Формат файла
+      required:
+        - id
+        - name
+        - format
+    Message:
+      type: object
+      description: Сообщение
+      properties:
+        publicationId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор публикации
+        senderId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор отправителя сообщения
+        recipientId:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор получателя сообщения
+        message:
+          type: string
+          format: text
+          description: Текст сообщения
+      required:
+        - publicationId
+        - senderId
+        - recipientId
+        - message
+    Feedback:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Уникальный идентификатор отзыва
+        order:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор заказа
+            title:
+              type: string
+              description: Название заказа
+        rating:
+          type: integer
+          enum:
+            - 1
+            - 2
+            - 3
+            - 4
+            - 5
+          description: Оценка о проделанной работе
+        comment:
+          type: string
+          description: Текст отзыва
+        reviewer:
+          type: object
+          properties:
+            id:
+              type: string
+              format: uuid
+              description: Уникальный идентификатор пользователя, оставившего отзыв
+            name:
+              type: string
+              description: Имя пользователя, оставившего отзыв
+            image:
+              type: string
+              format: uuid
+              description: UUID аватара подрядчика
+          required:
+            - id
+            - name
+        createdDate:
+          type: string
+          format: date-time
+          description: Дата и время, когда был оставлен отзыв
+      required:
+        - id
+        - orderId
+        - orderTitle
+        - rating
+        - reviewer
+        - createdDate
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
