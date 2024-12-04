@@ -5,7 +5,7 @@
 // See: https://docusaurus.io/docs/api/docusaurus-config
 
 import {themes as prismThemes} from 'prism-react-renderer';
-
+const simplePlantUML = require("@akebifiky/remark-simple-plantuml");
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 /** @type {import('@docusaurus/types').Config} */
@@ -48,7 +48,7 @@ const config = {
           sidebarPath: './sidebars.js',
           routeBasePath: 'docs',
           editUrl:
-            'https://github.com/itikineva/doc-as-a-code-workshop',
+            'https://github.com/kamiladmitr/BuildFinder',
           remarkPlugins: [simplePlantUML], //подключаем плагин для plantuml
         },
         blog: false,
