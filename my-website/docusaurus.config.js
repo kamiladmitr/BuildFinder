@@ -10,18 +10,11 @@ const simplePlantUML = require("@akebifiky/remark-simple-plantuml");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'My Site',
-  tagline: 'Dinosaurs are cool',
+  title: 'Build Finder',
+  tagline: 'Документация проекта Build Finder',
   favicon: 'img/favicon.ico',
-
-  // Set the production url of your site here
   url: 'https://kamiladmitr.github.io',
-  // Set the /<baseUrl>/ pathname under which your site is served
-  // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: 'BuildFinder',
-
-  // GitHub pages deployment config.
-  // If you aren't using GitHub pages, you don't need these.
   organizationName: 'kamiladmitr', // Usually your GitHub org/user name.
   projectName: 'BuildFinder', // Usually your repo name.
 
@@ -29,127 +22,80 @@ const config = {
   onBrokenMarkdownLinks: 'warn',
   trailingSlash: false,
   deploymentBranch: 'gh-pages',
-  // Even if you don't use internationalization, you can use this field to set
-  // useful metadata like html lang. For example, if your site is Chinese, you
-  // may want to replace "en" with "zh-Hans".
-  i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
-  },
-  plugins: [
-    ['drawio', {}]
-  ],
-  presets: [
-    [
-      'classic',
-      /** @type {import('@docusaurus/preset-classic').Options} */
-      ({
-        docs: {
-          sidebarPath: './sidebars.js',
-          routeBasePath: 'docs',
-          editUrl:
-            'https://github.com/kamiladmitr/BuildFinder',
-          remarkPlugins: [simplePlantUML], //подключаем плагин для plantuml
-        },
-        blog: false,
-        theme: {
-          customCss: './src/css/custom.css',
-        },
-      }),
-    ],
-    // подключаем плагин для OPENAPI
-    [
-      'redocusaurus',
-      {
-        specs: [
-          {
-            id: 'petstore',
-            spec: 'api_specs/openapi.yaml',
-          },
-        ],
-        theme: {
-          primaryColor: '#1890ff',
-        },
-      }
-    ],
-  ],
-
-  themeConfig:
-    /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+ //подключаем плагин для drawio
+ plugins: [
+  ['drawio', {}]
+],
+presets: [
+  [
+    'classic',
+    /** @type {import('@docusaurus/preset-classic').Options} */
     ({
-      // Replace with your project's social card
-      image: 'img/docusaurus-social-card.jpg',
-      navbar: {
-        title: 'My Site',
-        logo: {
-          alt: 'My Site Logo',
-          src: 'img/logo.svg',
-        },
-        items: [
-          {
-            type: 'docSidebar',
-            sidebarId: 'tutorialSidebar',
-            position: 'left',
-            label: 'Tutorial',
-          },
-          {to: '/blog', label: 'Blog', position: 'left'},
-          {
-            href: 'https://github.com/facebook/docusaurus',
-            label: 'GitHub',
-            position: 'right',
-          },
-        ],
+      docs: {
+        sidebarPath: './sidebars.js',
+        routeBasePath: '/',
+        editUrl:
+          'https://github.com/kamiladmitr/BuildFinder',
+        remarkPlugins: [simplePlantUML], //подключаем плагин для plantuml
       },
-      footer: {
-        style: 'dark',
-        links: [
-          {
-            title: 'Docs',
-            items: [
-              {
-                label: 'Tutorial',
-                to: '/docs/intro',
-              },
-            ],
-          },
-          {
-            title: 'Community',
-            items: [
-              {
-                label: 'Stack Overflow',
-                href: 'https://stackoverflow.com/questions/tagged/docusaurus',
-              },
-              {
-                label: 'Discord',
-                href: 'https://discordapp.com/invite/docusaurus',
-              },
-              {
-                label: 'X',
-                href: 'https://x.com/docusaurus',
-              },
-            ],
-          },
-          {
-            title: 'More',
-            items: [
-              {
-                label: 'Blog',
-                to: '/blog',
-              },
-              {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
-              },
-            ],
-          },
-        ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
-      },
-      prism: {
-        theme: prismThemes.github,
-        darkTheme: prismThemes.dracula,
+      blog: false,
+      theme: {
+        customCss: './src/css/custom.css',
       },
     }),
+  ],
+  // подключаем плагин для OPENAPI
+  [
+    'redocusaurus',
+    {
+      specs: [
+        {
+          id: 'petstore',
+          spec: 'api_specs/openapi.yaml',
+        },
+      ],
+      theme: {
+        primaryColor: '#1890ff',
+      },
+    }
+  ],
+],
+
+themeConfig:
+  /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
+  ({
+    image: 'img/docusaurus-social-card.jpg',
+    navbar: {
+      title: 'BuildFinder', //Название на навбаре
+      logo: {
+        alt: 'My Site Logo',
+        src: 'img/logo.svg', //Логотип на навбаре
+      },
+      // тут можно настроить элементы навбара
+      items: [
+        {
+          href: '/',
+          label: 'Документация',
+          position: 'right',
+        },
+        {
+          href: 'https://github.com/kamiladmitr/BuildFinder',
+          label: 'GitHub',
+          position: 'right',
+        },
+      ],
+    },
+    // тут можно настроить элементы футера
+    footer: {
+      style: 'dark',
+      links: [],
+      copyright: `Copyright © ${new Date().getFullYear()} BuildFinder, Inc. Built with Docusaurus.`,
+    },
+    prism: {
+      theme: prismThemes.github,
+      darkTheme: prismThemes.dracula,
+    },
+  }),
 };
 
 export default config;

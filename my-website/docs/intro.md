@@ -1,6 +1,7 @@
 ---
 title: Домашняя страница
 sidebar_position: 1
+slug: /
 ---
 
 # Карточка сервиса: **GETSTORE**
