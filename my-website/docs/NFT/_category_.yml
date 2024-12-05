@@ -1,0 +1,7 @@
+position: 8 # для сортировки папки в сайдбаре
+label: Нефункциональные требования # название пункта меню в сайдбаре
+collapsible: true
+collapsed: true
+link:
+  type: generated-index
+  title: Нефункциональные требования # Заголовок на странице
